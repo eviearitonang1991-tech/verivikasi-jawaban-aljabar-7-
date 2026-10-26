@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verifikasi Jawaban - By. Ms. Evi</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- QRCode.js Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #0b0f19;
+            color: #f8fafc;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #151d30;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #2a3755;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #38bdf8;
+        }
+
+        .glow-effect {
+            box-shadow: 0 0 20px rgba(56, 189, 248, 0.15);
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 15px rgba(56, 189, 248, 0.3); }
+            50% { box-shadow: 0 0 25px rgba(56, 189, 248, 0.6); }
+        }
+
+        .active-pulse {
+            animation: pulseGlow 2s infinite;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between custom-scrollbar bg-[#0b0f19]">
+
+    <!-- NAVBAR HEADER -->
+    <header class="bg-[#151d30] border-b border-[#2a3755] sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-3">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center font-bold text-white shadow-lg">
+                    <i class="fa-solid fa-calculator text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="font-extrabold text-lg text-sky-400 tracking-wide">Verifikasi Jawaban</h1>
+                    <p class="text-xs text-slate-400 font-medium">By. Ms. Evi </p>
+                </div>
+            </div>
+
+            <!-- Role Selector Tabs -->
+            <div class="flex bg-[#0b0f19] p-1 rounded-xl border border-[#2a3755]">
+                <button id="btnRoleHost" onclick="switchRole('host')" class="px-4 py-1.5 rounded-lg text-xs font-bold transition-all bg-sky-500 text-slate-950 shadow-md">
+                    <i class="fa-solid fa-user-shield mr-1.5"></i> Dashboard Host
+                </button>
+                <button id="btnRolePlayer" onclick="switchRole('player')" class="px-4 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-white">
+                    <i class="fa-solid fa-gamepad mr-1.5"></i> Tampilan Peserta
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <main class="max-w-7xl mx-auto w-full p-4 flex-grow">
+
+        <!-- ========================================================================= -->
+        <!-- VIEW HOST / GURU -->
+        <!-- ========================================================================= -->
+        <section id="hostView" class="space-y-6">
+            <!-- Host Top Bar Controls -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- QR Code & Join Card -->
+                <div class="bg-[#151d30] p-5 rounded-2xl border border-[#2a3755] flex flex-col items-center justify-center text-center glow-effect">
+                    <h2 class="text-sm font-bold text-sky-400 uppercase tracking-wider mb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-qrcode"></i> Scan untuk Bergabung
+                    </h2>
+                    
+                    <div id="qrcode" class="p-3 bg-white rounded-xl shadow-md my-2"></div>
+                    
+                    <p class="text-xs text-slate-400 mt-1">Sesi Game ID: <span id="sessionCodeDisplay" class="font-mono text-sky-400 font-bold">---</span></p>
+                    
+                    <div class="mt-3 flex gap-2 w-full">
+                        <button onclick="generateNewSession()" class="flex-1 py-2 px-3 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-[#2a3755] rounded-xl text-xs font-semibold transition">
+                            <i class="fa-solid fa-rotate mr-1"></i> Sesi Baru
+                        </button>
+                        <button onclick="simulatePlayerJoin()" class="flex-1 py-2 px-3 bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-300 border border-indigo-500/30 rounded-xl text-xs font-semibold transition">
+                            <i class="fa-solid fa-up-right-from-square mr-1"></i> Buka Peserta
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Game Control Center -->
+                <div class="bg-[#151d30] p-5 rounded-2xl border border-[#2a3755] flex flex-col justify-between md:col-span-2">
+                    <div>
+                        <div class="flex justify-between items-center mb-4">
+                            <div>
+                                <h2 class="text-base font-bold text-slate-100 flex items-center gap-2">
+                                    <i class="fa-solid fa-tower-broadcast text-sky-400"></i> Kontrol Sesi Permainan
+                                </h2>
+                                <p class="text-xs text-slate-400 mt-0.5">Kelola jalannya permainan secara realtime untuk peserta.</p>
+                            </div>
+                            <span id="hostGameStatusBadge" class="px-3 py-1 rounded-full text-xs font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center gap-1.5">
+                                <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span> Belum Dimulai
+                            </span>
+                        </div>
+
+                        <div class="grid grid-cols-3 gap-3 my-4">
+                            <div class="bg-[#0b0f19] p-3 rounded-xl border border-[#2a3755] text-center">
+                                <span class="text-2xl font-black text-sky-400" id="totalConnectedPlayers">0</span>
+                                <p class="text-[11px] text-slate-400 font-medium">Total Peserta</p>
+                            </div>
+                            <div class="bg-[#0b0f19] p-3 rounded-xl border border-[#2a3755] text-center">
+                                <span class="text-2xl font-black text-emerald-400" id="totalCorrectAnswers">0</span>
+                                <p class="text-[11px] text-slate-400 font-medium">Jawaban Benar</p>
+                            </div>
+                            <div class="bg-[#0b0f19] p-3 rounded-xl border border-[#2a3755] text-center">
+                                <span class="text-2xl font-black text-indigo-400" id="activeModeCount">3</span>
+                                <p class="text-[11px] text-slate-400 font-medium">Kategori Mode</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-3">
+                        <button id="btnStartGame" onclick="setGameState(true)" class="flex-1 py-3 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-xl font-bold text-sm transition shadow-lg flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-play"></i> Mulai Permainan
+                        </button>
+                        <button id="btnStopGame" onclick="setGameState(false)" disabled class="flex-1 py-3 bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/30 rounded-xl font-bold text-sm transition opacity-50 cursor-not-allowed flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-stop"></i> Akhiri Permainan
+                        </button>
+                        <button onclick="resetAllScores()" class="py-3 px-4 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-[#2a3755] rounded-xl font-bold text-xs transition" title="Reset Semua Skor">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Realtime Leaderboard & Progress Section -->
+            <div class="bg-[#151d30] p-5 rounded-2xl border border-[#2a3755]">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-5 border-b border-[#2a3755] pb-4">
+                    <div>
+                        <h2 class="text-lg font-bold text-slate-100 flex items-center gap-2">
+                            <i class="fa-solid fa-chart-line text-sky-400"></i> Leaderboard & Progress Realtime
+                        </h2>
+                        <p class="text-xs text-slate-400">Pantau skor, waktu respon, dan penyelesaian soal peserta secara instan.</p>
+                    </div>
+
+                    <!-- Category Mode Tabs -->
+                    <div class="flex bg-[#0b0f19] p-1 rounded-xl border border-[#2a3755]">
+                        <button onclick="switchLeaderboardTab('kelompok')" id="tabGroup" class="px-3 py-1.5 rounded-lg text-xs font-bold transition bg-sky-500 text-slate-950">
+                            Mode Kelompok
+                        </button>
+                        <button onclick="switchLeaderboardTab('individu')" id="tabIndiv" class="px-3 py-1.5 rounded-lg text-xs font-bold transition text-slate-400 hover:text-white">
+                            Mode Individu
+                        </button>
+                        <button onclick="switchLeaderboardTab('gabungan')" id="tabCombo" class="px-3 py-1.5 rounded-lg text-xs font-bold transition text-slate-400 hover:text-white">
+                            Mode Gabungan
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Table Container -->
+                <div class="overflow-x-auto custom-scrollbar">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-[#0b0f19] text-slate-400 uppercase text-[11px] font-bold tracking-wider">
+                            <tr>
+                                <th class="p-3 rounded-l-xl">Peringkat</th>
+                                <th class="p-3" id="thLeaderboardName">Nama / Kelompok</th>
+                                <th class="p-3 text-center">Soal Selesai</th>
+                                <th class="p-3 text-center">Poin Dasar</th>
+                                <th class="p-3 text-center">Bonus Kecepatan</th>
+                                <th class="p-3 text-right rounded-r-xl">Total Skor</th>
+                            </tr>
+                        </thead>
+                        <tbody id="leaderboardBody" class="divide-y divide-[#2a3755] text-slate-200">
+                            <!-- Populated via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ========================================================================= -->
+        <!-- VIEW PESERTA / PLAYER -->
+        <!-- ========================================================================= -->
+        <section id="playerView" class="hidden max-w-xl mx-auto space-y-5">
+            
+            <!-- LAYAR 1: SCAN / SETUP DAN GABUNG -->
+            <div id="playerSetupCard" class="bg-[#151d30] p-6 rounded-2xl border border-[#2a3755] shadow-xl space-y-5">
+                <div class="text-center border-b border-[#2a3755] pb-4">
+                    <span class="px-3 py-1 rounded-full text-[11px] font-bold bg-sky-500/10 text-sky-400 border border-sky-500/20 uppercase tracking-widest">
+                        Registrasi Peserta
+                    </span>
+                    <h2 class="text-xl font-extrabold text-white mt-2">Gabung Permainan</h2>
+                    <p class="text-xs text-slate-400">Pilih mode bermain lalu daftarkan identitas Anda.</p>
+                </div>
+
+                <!-- Choice Mode Selection -->
+                <div class="space-y-2">
+                    <label class="text-xs font-bold uppercase tracking-wider text-slate-400">Pilih Mode Permainan:</label>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button type="button" onclick="selectPlayerMode('kelompok')" id="btnModeKelompok" class="p-3 rounded-xl border border-sky-500 bg-sky-500/10 text-sky-400 font-bold text-xs flex flex-col items-center gap-1.5 transition">
+                            <i class="fa-solid fa-users text-lg"></i> Kelompok
+                        </button>
+                        <button type="button" onclick="selectPlayerMode('individu')" id="btnModeIndividu" class="p-3 rounded-xl border border-[#2a3755] bg-[#0b0f19] text-slate-400 font-bold text-xs flex flex-col items-center gap-1.5 transition">
+                            <i class="fa-solid fa-user text-lg"></i> Individu
+                        </button>
+                        <button type="button" onclick="selectPlayerMode('gabungan')" id="btnModeGabungan" class="p-3 rounded-xl border border-[#2a3755] bg-[#0b0f19] text-slate-400 font-bold text-xs flex flex-col items-center gap-1.5 transition">
+                            <i class="fa-solid fa-people-roof text-lg"></i> Gabungan
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Input Fields dynamically changed -->
+                <div class="space-y-4 pt-2">
+                    <!-- Group Field -->
+                    <div id="fieldGroup" class="space-y-1">
+                        <label class="text-xs font-bold text-slate-400 uppercase">Pilih / Nama Kelompok:</label>
+                        <select id="playerGroupSelect" class="w-full bg-[#0b0f19] border border-[#2a3755] rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-sky-400">
+                            <option value="" disabled selected>-- Pilih Kelompok --</option>
+                            <option value="Kelompok 1">Kelompok 1</option>
+                            <option value="Kelompok 2">Kelompok 2</option>
+                            <option value="Kelompok 3">Kelompok 3</option>
+                            <option value="Kelompok 4">Kelompok 4</option>
+                            <option value="Kelompok 5">Kelompok 5</option>
+                            <option value="Kelompok 6">Kelompok 6</option>
+                        </select>
+                    </div>
+
+                    <!-- Name Field -->
+                    <div id="fieldName" class="space-y-1 hidden">
+                        <label class="text-xs font-bold text-slate-400 uppercase">Nama Peserta / Lengkap:</label>
+                        <input type="text" id="playerNameInput" placeholder="Masukkan nama Anda..." class="w-full bg-[#0b0f19] border border-[#2a3755] rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-sky-400">
+                    </div>
+                </div>
+
+                <button onclick="joinGameSession()" class="w-full py-3.5 bg-gradient-to-r from-sky-400 to-blue-600 hover:from-sky-300 hover:to-blue-500 text-slate-950 font-extrabold rounded-xl text-sm transition uppercase tracking-wider shadow-lg">
+                    <i class="fa-solid fa-right-to-bracket mr-1"></i> Bergabung Ke Game
+                </button>
+            </div>
+
+            <!-- LAYAR 2: LOBBY MENUNGGU HOST -->
+            <div id="playerWaitingCard" class="hidden bg-[#151d30] p-8 rounded-2xl border border-[#2a3755] text-center space-y-4 glow-effect">
+                <div class="w-16 h-16 bg-sky-500/20 text-sky-400 rounded-full flex items-center justify-center mx-auto text-2xl animate-bounce">
+                    <i class="fa-solid fa-hourglass-half"></i>
+                </div>
+                <h3 class="text-xl font-bold text-white">Menunggu Host Memulai Permainan...</h3>
+                <p class="text-xs text-slate-400">Anda berhasil bergabung sebagai <span id="waitPlayerIdentity" class="text-sky-400 font-bold"></span>.</p>
+                <div class="p-3 bg-[#0b0f19] rounded-xl border border-[#2a3755] text-xs text-slate-400">
+                    Permainan akan terbuka secara otomatis begitu Host menekan tombol <strong class="text-emerald-400">"Mulai Permainan"</strong>.
+                </div>
+                <button onclick="leavePlayerSession()" class="text-xs text-rose-400 hover:underline">Ganti Mode / Identitas</button>
+            </div>
+
+            <!-- LAYAR 3: ARENA PERMAINAN PESERTA -->
+            <div id="playerGameArea" class="hidden space-y-4">
+                <!-- HUD Player Stats -->
+                <div class="bg-[#151d30] p-4 rounded-2xl border border-[#2a3755] flex justify-between items-center">
+                    <div>
+                        <p class="text-[11px] text-slate-400 uppercase font-bold">Peserta Active</p>
+                        <h4 id="hudPlayerName" class="text-sm font-bold text-sky-400 truncate max-w-[180px]">-</h4>
+                        <span id="hudPlayerModeBadge" class="text-[10px] px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-semibold uppercase">Mode</span>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-[11px] text-slate-400 uppercase font-bold">Total Skor</p>
+                        <p class="text-xl font-extrabold text-emerald-400" id="hudPlayerScore">0</p>
+                    </div>
+                </div>
+
+                <!-- Mission Table Selector -->
+                <div class="bg-[#151d30] p-4 rounded-2xl border border-[#2a3755] space-y-2">
+                    <label class="text-xs font-bold text-slate-400 uppercase">Pilih Meja Misi:</label>
+                    <div class="grid grid-cols-5 gap-1.5">
+                        <button onclick="switchMission(1, this)" class="btn-mission py-2 rounded-lg bg-sky-500 text-slate-950 text-xs font-bold transition">Misi 1</button>
+                        <button onclick="switchMission(2, this)" class="btn-mission py-2 rounded-lg bg-[#0b0f19] text-slate-400 border border-[#2a3755] text-xs font-bold transition">Misi 2</button>
+                        <button onclick="switchMission(3, this)" class="btn-mission py-2 rounded-lg bg-[#0b0f19] text-slate-400 border border-[#2a3755] text-xs font-bold transition">Misi 3</button>
+                        <button onclick="switchMission(4, this)" class="btn-mission py-2 rounded-lg bg-[#0b0f19] text-slate-400 border border-[#2a3755] text-xs font-bold transition">Misi 4</button>
+                        <button onclick="switchMission(5, this)" class="btn-mission py-2 rounded-lg bg-[#0b0f19] text-slate-400 border border-[#2a3755] text-xs font-bold transition">Misi 5</button>
+                    </div>
+                </div>
+
+                <!-- Question Grid (30 Numbers) -->
+                <div class="bg-[#151d30] p-4 rounded-2xl border border-[#2a3755] space-y-3">
+                    <div class="flex justify-between items-center">
+                        <label id="questionLabel" class="text-xs font-bold text-slate-300 uppercase">Nomor Soal (Misi 1):</label>
+                        <span class="text-[11px] text-slate-400"><i class="fa-solid fa-clock text-amber-400 mr-1"></i>Bonus Kecepatan Aktif</span>
+                    </div>
+                    <div id="numbersGrid" class="grid grid-cols-6 gap-2 max-h-56 overflow-y-auto custom-scrollbar p-1">
+                        <!-- 1-30 Buttons injected by JS -->
+                    </div>
+                </div>
+
+                <!-- Input & Submit Box -->
+                <div class="bg-[#151d30] p-4 rounded-2xl border border-[#2a3755] space-y-3">
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-slate-400 uppercase">Input Jawaban Aljabar:</label>
+                        <input type="text" id="answerInput" placeholder="Pilih nomor soal di atas..." disabled autocomplete="off" class="w-full bg-[#0b0f19] border border-[#2a3755] rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-sky-400 disabled:opacity-50">
+                    </div>
+
+                    <button id="submitBtn" onclick="checkAnswer()" disabled class="w-full py-3 bg-sky-500 hover:bg-sky-400 disabled:bg-slate-800 disabled:text-slate-500 text-slate-950 font-bold rounded-xl text-sm transition uppercase tracking-wider">
+                        Submit Jawaban
+                    </button>
+
+                    <!-- Feedback Box -->
+                    <div id="feedback" class="hidden p-3 rounded-xl text-center text-xs font-bold transition-all"></div>
+
+                    <!-- Rules Box -->
+                    <div class="p-3 bg-[#0b0f19] rounded-xl border border-[#2a3755]/60 text-[11px] text-slate-400 space-y-1">
+                        <p>📌 <strong>Aturan Ketik:</strong> Tanpa spasi, huruf kecil (misal: <code>3x+2y</code>), pangkat gunakan <code>^</code> (misal: <code>x^2</code>).</p>
+                        <p>⚡ <strong>Speed Bonus:</strong> Jawab lebih cepat setelah memilih nomor soal untuk menambah hingga <strong>+50 Poin Bonus</strong>!</p>
+                    </div>
+
+                    <button onclick="leavePlayerSession()" class="w-full text-center text-xs text-slate-500 hover:text-slate-300 pt-1">
+                        Keluar / Ganti Identitas
+                    </button>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-[#151d30] border-t border-[#2a3755] py-3 text-center text-xs text-slate-500">
+        <p>Verifikasi Jawaban - By. Ms. Evi &copy; 2026. All rights reserved.</p>
+    </footer>
+
+
+    <!-- ========================================================================= -->
+    <!-- JAVASCRIPT SYSTEM ENGINE -->
+    <!-- ========================================================================= -->
+    <script>
+        // BroadcastChannel for Realtime Syncing across browser tabs
+        const syncChannel = new BroadcastChannel('adaptox_sync_channel');
+
+        // -------------------------------------------------------------
+        // DATABASE KUNCI JAWABAN (5 Misi x 30 Soal)
+        // -------------------------------------------------------------
+        const answerKeys = {
+            1: { 1: "c", 2: "a", 3: "d", 4: "b", 5: "c", 6: "d", 7: "a", 8: "a", 9: "d", 10: "b", 11: "a", 12: "c", 13: "a", 14: "b", 15: "c", 16: "a", 17: "c", 18: "b", 19: "d", 20: "a", 21: "c", 22: "b", 23: "d", 24: "a", 25: "c", 26: "b", 27: "d", 28: "a", 29: "c", 30: "d" },
+            2: { 1: "b", 2: "a", 3: "a", 4: "c", 5: "d", 6: "b", 7: "c", 8: "a", 9: "d", 10: "b", 11: "a", 12: "c", 13: "d", 14: "b", 15: "c", 16: "a", 17: "b", 18: "d", 19: "c", 20: "b", 21: "d", 22: "a", 23: "c", 24: "b", 25: "d", 26: "b", 27: "d", 28: "a", 29: "c", 30: "b" },
+            3: { 1: "d", 2: "a", 3: "c", 4: "b", 5: "d", 6: "a", 7: "c", 8: "a", 9: "c", 10: "b", 11: "d", 12: "c", 13: "a", 14: "c", 15: "b", 16: "8x", 17: "11a", 18: "11y", 19: "7x+3", 20: "11a+4b", 21: "7a+7", 22: "7a+7b", 23: "10x+5", 24: "9p+6q+3", 25: "9x+y+13", 26: "12x-3y+5", 27: "7a^2+3a+5", 28: "7x^2-2x", 29: "5p^2+3p-3", 30: "9x+5y" },
+            4: { 1: "5x", 2: "7a", 3: "5y", 4: "5x+5", 5: "7a+6b", 6: "4x+5", 7: "5a+3b", 8: "6x-9", 9: "5p+5q+3", 10: "4x+8y+4", 11: "5x+9y-9", 12: "5a^2+9a-9", 13: "4x^2-7x+6", 14: "4p^2+8p-12", 15: "5x+3y", 16: "6x", 17: "7a", 18: "2y+6", 19: "5p+3q", 20: "11x+3", 21: "5x+3", 22: "3a+4b", 23: "7x-4", 24: "10p+2q-3", 25: "3x+7y-5", 26: "3x-2", 27: "3a^2+8a-10", 28: "x^2+9x+2", 29: "5p^2-10p+11", 30: "8x+14" },
+            5: { 1: "12x", 2: "10a^2", 3: "12xy", 4: "12p^3", 5: "6a^2+12a", 6: "12x^2+8x", 7: "10a^2-15a", 8: "6x^2+12xy-15x", 9: "x^2+5x+6", 10: "a^2+2a-8", 11: "2x^2+11x+12", 12: "6a^2+11a-10", 13: "2x^2+7xy+6y^2", 14: "6p^2+8pq-8q^2", 15: "2x^2+11x+15", 16: "4x", 17: "4a", 18: "3x", 19: "6a^2", 20: "6y", 21: "6x^2", 22: "6a^2", 23: "-4x^2", 24: "5a^2b", 25: "8p^2q^2", 26: "2x+3", 27: "4a+3", 28: "3x-2", 29: "6p^2+3p-2", 30: "4x+6" }
+        };
+
+        // GLOBAL APP STATES
+        let appState = {
+            sessionCode: 'EVIGAME-' + Math.floor(1000 + Math.random() * 9000),
+            isStarted: false,
+            scores: {} // Stores data by player key
+        };
+
+        // PLAYER LOCAL STATE
+        let playerState = {
+            mode: 'kelompok', // 'kelompok', 'individu', 'gabungan'
+            group: '',
+            name: '',
+            idKey: '',
+            currentMission: 1,
+            currentQuestion: null,
+            questionStartTime: null
+        };
+
+        let currentLeaderboardTab = 'kelompok';
+
+        // INIT APP ON LOAD
+        window.onload = function() {
+            loadStorageState();
+            setupQRCode();
+            
+            // Check query param if scanned barcode
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('mode') === 'player') {
+                switchRole('player');
+            }
+
+            // Sync Broadcast Listener
+            syncChannel.onmessage = (event) => {
+                if (event.data && event.data.type) {
+                    handleSyncMessage(event.data);
+                }
+            };
+
+            renderHostDashboard();
+            checkPlayerSessionState();
+        };
+
+        // -------------------------------------------------------------
+        // STORAGE & SYNC ENGINE
+        // -------------------------------------------------------------
+        function loadStorageState() {
+            const saved = localStorage.getItem('evi_adaptox_state');
+            if (saved) {
+                try {
+                    appState = JSON.parse(saved);
+                } catch(e) {
+                    console.error(e);
+                }
+            } else {
+                saveStorageState();
+            }
+        }
+
+        function saveStorageState() {
+            localStorage.setItem('evi_adaptox_state', JSON.stringify(appState));
+        }
+
+        function broadcastStateUpdate(actionType, extraData = {}) {
+            saveStorageState();
+            syncChannel.postMessage({
+                type: actionType,
+                appState: appState,
+                sender: playerState.idKey || 'HOST',
+                ...extraData
+            });
+        }
+
+        function handleSyncMessage(data) {
+            if (data.appState) {
+                appState = data.appState;
+                saveStorageState();
+            }
+
+            renderHostDashboard();
+
+            // Update Player UI if game status changed
+            if (playerState.idKey) {
+                checkPlayerSessionState();
+            }
+        }
+
+        // -------------------------------------------------------------
+        // ROLE SWITCHING & QR CODE
+        // -------------------------------------------------------------
+        function switchRole(role) {
+            const hostView = document.getElementById('hostView');
+            const playerView = document.getElementById('playerView');
+            const btnHost = document.getElementById('btnRoleHost');
+            const btnPlayer = document.getElementById('btnRolePlayer');
+
+            if (role === 'host') {
+                hostView.classList.remove('hidden');
+                playerView.classList.add('hidden');
+
+                btnHost.className = "px-4 py-1.5 rounded-lg text-xs font-bold transition-all bg-sky-500 text-slate-950 shadow-md";
+                btnPlayer.className = "px-4 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-white";
+                renderHostDashboard();
+            } else {
+                hostView.classList.add('hidden');
+                playerView.classList.remove('hidden');
+
+                btnPlayer.className = "px-4 py-1.5 rounded-lg text-xs font-bold transition-all bg-sky-500 text-slate-950 shadow-md";
+                btnHost.className = "px-4 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-white";
+                checkPlayerSessionState();
+            }
+        }
+
+        function setupQRCode() {
+            document.getElementById('qrcode').innerHTML = "";
+            document.getElementById('sessionCodeDisplay').innerText = appState.sessionCode;
+            
+            // Build current URL with barcode param
+            const joinUrl = window.location.href.split('?')[0] + '?mode=player&session=' + appState.sessionCode;
+            
+            new QRCode(document.getElementById("qrcode"), {
+                text: joinUrl,
+                width: 130,
+                height: 130,
+                colorDark : "#0b0f19",
+                colorLight : "#ffffff",
+                correctLevel : QRCode.CorrectLevel.H
+            });
+        }
+
+        function generateNewSession() {
+            if (confirm("Buat sesi baru? Semua data skor peserta saat ini akan di-reset.")) {
+                appState.sessionCode = 'EVIGAME-' + Math.floor(1000 + Math.random() * 9000);
+                appState.isStarted = false;
+                appState.scores = {};
+                setupQRCode();
+                broadcastStateUpdate('NEW_SESSION');
+            }
+        }
+
+        function simulatePlayerJoin() {
+            switchRole('player');
+        }
+
+        // -------------------------------------------------------------
+        // HOST CONTROL ENGINE
+        // -------------------------------------------------------------
+        function setGameState(started) {
+            appState.isStarted = started;
+            broadcastStateUpdate('GAME_STATE_CHANGE', { isStarted: started });
+            renderHostDashboard();
+        }
+
+        function resetAllScores() {
+            if (confirm("Yakin ingin menghapus seluruh progres dan skor peserta?")) {
+                appState.scores = {};
+                broadcastStateUpdate('RESET_SCORES');
+                renderHostDashboard();
+            }
+        }
+
+        function renderHostDashboard() {
+            // Update Host status badge
+            const statusBadge = document.getElementById('hostGameStatusBadge');
+            const btnStart = document.getElementById('btnStartGame');
+            const btnStop = document.getElementById('btnStopGame');
+
+            if (appState.isStarted) {
+                statusBadge.className = "px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center gap-1.5 active-pulse";
+                statusBadge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Permainan Berlangsung`;
+
+                btnStart.disabled = true;
+                btnStart.classList.add('opacity-50', 'cursor-not-allowed');
+                btnStop.disabled = false;
+                btnStop.classList.remove('opacity-50', 'cursor-not-allowed');
+            } else {
+                statusBadge.className = "px-3 py-1 rounded-full text-xs font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center gap-1.5";
+                statusBadge.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-400"></span> Belum Dimulai / Dihentikan`;
+
+                btnStart.disabled = false;
+                btnStart.classList.remove('opacity-50', 'cursor-not-allowed');
+                btnStop.disabled = true;
+                btnStop.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+
+            // Stats Count
+            const players = Object.values(appState.scores);
+            document.getElementById('totalConnectedPlayers').innerText = players.length;
+            
+            let totalCorrect = 0;
+            players.forEach(p => {
+                if (p.solved) {
+                    Object.values(p.solved).forEach(arr => totalCorrect += arr.length);
+                }
+            });
+            document.getElementById('totalCorrectAnswers').innerText = totalCorrect;
+
+            renderLeaderboardTable();
+        }
+
+        function switchLeaderboardTab(mode) {
+            currentLeaderboardTab = mode;
+            document.getElementById('tabGroup').className = mode === 'kelompok' ? "px-3 py-1.5 rounded-lg text-xs font-bold transition bg-sky-500 text-slate-950" : "px-3 py-1.5 rounded-lg text-xs font-bold transition text-slate-400 hover:text-white";
+            document.getElementById('tabIndiv').className = mode === 'individu' ? "px-3 py-1.5 rounded-lg text-xs font-bold transition bg-sky-500 text-slate-950" : "px-3 py-1.5 rounded-lg text-xs font-bold transition text-slate-400 hover:text-white";
+            document.getElementById('tabCombo').className = mode === 'gabungan' ? "px-3 py-1.5 rounded-lg text-xs font-bold transition bg-sky-500 text-slate-950" : "px-3 py-1.5 rounded-lg text-xs font-bold transition text-slate-400 hover:text-white";
+            
+            const thName = document.getElementById('thLeaderboardName');
+            if(mode === 'kelompok') thName.innerText = "Nama Kelompok";
+            else if(mode === 'individu') thName.innerText = "Nama Peserta";
+            else thName.innerText = "Kelompok & Nama Peserta";
+
+            renderLeaderboardTable();
+        }
+
+        function renderLeaderboardTable() {
+            const tbody = document.getElementById('leaderboardBody');
+            tbody.innerHTML = '';
+
+            const filtered = Object.values(appState.scores).filter(p => p.mode === currentLeaderboardTab);
+
+            // Sort by Total Score descending
+            filtered.sort((a, b) => b.totalScore - a.totalScore);
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-slate-500 italic">Belum ada data peserta untuk mode ini.</td></tr>`;
+                return;
+            }
+
+            filtered.forEach((item, index) => {
+                let rankBadge = `<span class="font-bold">${index + 1}</span>`;
+                if (index === 0) rankBadge = `<span class="w-6 h-6 rounded-full bg-amber-400 text-slate-950 font-black inline-flex items-center justify-center text-xs">1</span>`;
+                else if (index === 1) rankBadge = `<span class="w-6 h-6 rounded-full bg-slate-300 text-slate-950 font-black inline-flex items-center justify-center text-xs">2</span>`;
+                else if (index === 2) rankBadge = `<span class="w-6 h-6 rounded-full bg-amber-700 text-white font-black inline-flex items-center justify-center text-xs">3</span>`;
+
+                let solvedCount = 0;
+                if (item.solved) {
+                    Object.values(item.solved).forEach(a => solvedCount += a.length);
+                }
+
+                let displayName = item.group;
+                if (item.mode === 'individu') displayName = item.name;
+                if (item.mode === 'gabungan') displayName = `${item.group} - ${item.name}`;
+
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-[#1e293b]/50 transition";
+                tr.innerHTML = `
+                    <td class="p-3 font-bold text-center">${rankBadge}</td>
+                    <td class="p-3 font-semibold text-sky-300">${displayName}</td>
+                    <td class="p-3 text-center font-mono">${solvedCount} / 150</td>
+                    <td class="p-3 text-center font-mono text-emerald-400">+${item.baseScore || 0}</td>
+                    <td class="p-3 text-center font-mono text-amber-400">+${item.speedBonus || 0}</td>
+                    <td class="p-3 text-right font-black text-lg text-emerald-300">${item.totalScore || 0}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // -------------------------------------------------------------
+        // PLAYER ENGINE
+        // -------------------------------------------------------------
+        function selectPlayerMode(mode) {
+            playerState.mode = mode;
+
+            const btnKel = document.getElementById('btnModeKelompok');
+            const btnInd = document.getElementById('btnModeIndividu');
+            const btnGab = document.getElementById('btnModeGabungan');
+
+            const fGroup = document.getElementById('fieldGroup');
+            const fName = document.getElementById('fieldName');
+
+            // Reset Styles
+            [btnKel, btnInd, btnGab].forEach(b => b.className = "p-3 rounded-xl border border-[#2a3755] bg-[#0b0f19] text-slate-400 font-bold text-xs flex flex-col items-center gap-1.5 transition");
+
+            if (mode === 'kelompok') {
+                btnKel.className = "p-3 rounded-xl border border-sky-500 bg-sky-500/10 text-sky-400 font-bold text-xs flex flex-col items-center gap-1.5 transition";
+                fGroup.classList.remove('hidden');
+                fName.classList.add('hidden');
+            } else if (mode === 'individu') {
+                btnInd.className = "p-3 rounded-xl border border-sky-500 bg-sky-500/10 text-sky-400 font-bold text-xs flex flex-col items-center gap-1.5 transition";
+                fGroup.classList.add('hidden');
+                fName.classList.remove('hidden');
+            } else {
+                btnGab.className = "p-3 rounded-xl border border-sky-500 bg-sky-500/10 text-sky-400 font-bold text-xs flex flex-col items-center gap-1.5 transition";
+                fGroup.classList.remove('hidden');
+                fName.classList.remove('hidden');
+            }
+        }
+
+        function joinGameSession() {
+            const groupVal = document.getElementById('playerGroupSelect').value;
+            const nameVal = document.getElementById('playerNameInput').value.trim();
+
+            if (playerState.mode === 'kelompok' && !groupVal) {
+                alert("Silakan pilih Kelompok!");
+                return;
+            }
+            if (playerState.mode === 'individu' && !nameVal) {
+                alert("Silakan isi Nama Peserta!");
+                return;
+            }
+            if (playerState.mode === 'gabungan' && (!groupVal || !nameVal)) {
+                alert("Silakan isi Kelompok dan Nama Peserta!");
+                return;
+            }
+
+            playerState.group = groupVal;
+            playerState.name = nameVal;
+
+            // Generate Key
+            if (playerState.mode === 'kelompok') playerState.idKey = `GRP_${groupVal}`;
+            else if (playerState.mode === 'individu') playerState.idKey = `IND_${nameVal.replace(/\s+/g, '_')}`;
+            else playerState.idKey = `CMB_${groupVal}_${nameVal.replace(/\s+/g, '_')}`;
+
+            // Initialize Player state in App state if not present
+            if (!appState.scores[playerState.idKey]) {
+                appState.scores[playerState.idKey] = {
+                    key: playerState.idKey,
+                    mode: playerState.mode,
+                    group: playerState.group,
+                    name: playerState.name,
+                    baseScore: 0,
+                    speedBonus: 0,
+                    totalScore: 0,
+                    solved: { 1: [], 2: [], 3: [], 4: [], 5: [] }
+                };
+            }
+
+            broadcastStateUpdate('PLAYER_JOIN');
+            checkPlayerSessionState();
+        }
+
+        function leavePlayerSession() {
+            playerState.idKey = '';
+            checkPlayerSessionState();
+        }
+
+        function checkPlayerSessionState() {
+            const setupCard = document.getElementById('playerSetupCard');
+            const waitCard = document.getElementById('playerWaitingCard');
+            const gameArea = document.getElementById('playerGameArea');
+
+            if (!playerState.idKey) {
+                setupCard.classList.remove('hidden');
+                waitCard.classList.add('hidden');
+                gameArea.classList.add('hidden');
+                return;
+            }
+
+            // Registered
+            let identityText = playerState.group;
+            if (playerState.mode === 'individu') identityText = playerState.name;
+            if (playerState.mode === 'gabungan') identityText = `${playerState.group} (${playerState.name})`;
+
+            document.getElementById('waitPlayerIdentity').innerText = identityText;
+
+            if (!appState.isStarted) {
+                setupCard.classList.add('hidden');
+                waitCard.classList.remove('hidden');
+                gameArea.classList.add('hidden');
+            } else {
+                setupCard.classList.add('hidden');
+                waitCard.classList.add('hidden');
+                gameArea.classList.remove('hidden');
+
+                document.getElementById('hudPlayerName').innerText = identityText;
+                document.getElementById('hudPlayerModeBadge').innerText = `Mode ${playerState.mode}`;
+                
+                updatePlayerHUD();
+                renderQuestionGrid();
+            }
+        }
+
+        function updatePlayerHUD() {
+            const pData = appState.scores[playerState.idKey];
+            if (pData) {
+                document.getElementById('hudPlayerScore').innerText = pData.totalScore || 0;
+            }
+        }
+
+        function switchMission(missionNo, btnElement) {
+            playerState.currentMission = missionNo;
+            playerState.currentQuestion = null;
+
+            document.querySelectorAll('.btn-mission').forEach(btn => {
+                btn.className = "btn-mission py-2 rounded-lg bg-[#0b0f19] text-slate-400 border border-[#2a3755] text-xs font-bold transition";
+            });
+            if (btnElement) {
+                btnElement.className = "btn-mission py-2 rounded-lg bg-sky-500 text-slate-950 text-xs font-bold transition";
+            }
+
+            document.getElementById('questionLabel').innerText = `Nomor Soal (Misi ${missionNo}):`;
+
+            const input = document.getElementById('answerInput');
+            input.value = '';
+            input.disabled = true;
+            input.placeholder = "Pilih nomor soal di atas...";
+            document.getElementById('submitBtn').disabled = true;
+            document.getElementById('feedback').className = "hidden";
+
+            renderQuestionGrid();
+        }
+
+        function renderQuestionGrid() {
+            const grid = document.getElementById('numbersGrid');
+            grid.innerHTML = '';
+
+            const pData = appState.scores[playerState.idKey];
+            const solvedList = (pData && pData.solved) ? pData.solved[playerState.currentMission] || [] : [];
+
+            for (let i = 1; i <= 30; i++) {
+                const btn = document.createElement('button');
+                btn.innerText = i;
+
+                if (solvedList.includes(i)) {
+                    btn.className = "py-2 bg-emerald-500/20 text-emerald-400 border border-emerald-500/50 font-bold text-xs rounded-lg cursor-default relative";
+                    btn.innerHTML = `${i} <i class="fa-solid fa-check text-[9px] absolute top-1 right-1"></i>`;
+                } else {
+                    if (playerState.currentQuestion === i) {
+                        btn.className = "py-2 bg-sky-500 text-slate-950 border border-sky-400 font-extrabold text-xs rounded-lg shadow-md";
+                    } else {
+                        btn.className = "py-2 bg-[#0b0f19] hover:bg-slate-800 text-slate-200 border border-[#2a3755] font-bold text-xs rounded-lg transition";
+                    }
+                    btn.onclick = () => selectQuestion(i);
+                }
+
+                grid.appendChild(btn);
+            }
+        }
+
+        function selectQuestion(no) {
+            playerState.currentQuestion = no;
+            playerState.questionStartTime = Date.now(); // Start timer for speed bonus
+
+            renderQuestionGrid();
+
+            const input = document.getElementById('answerInput');
+            input.disabled = false;
+            input.placeholder = `Jawaban Misi ${playerState.currentMission} No. ${no}...`;
+            input.value = '';
+            input.focus();
+
+            document.getElementById('submitBtn').disabled = false;
+            document.getElementById('feedback').className = "hidden";
+        }
+
+        function normalizeAlgebra(str) {
+            return str.replace(/\s+/g, '').toLowerCase();
+        }
+
+        function checkAnswer() {
+            const input = document.getElementById('answerInput');
+            const feedback = document.getElementById('feedback');
+            const userInput = normalizeAlgebra(input.value);
+
+            if (!playerState.currentQuestion) {
+                alert("Pilih nomor soal terlebih dahulu!");
+                return;
+            }
+
+            if (userInput === "") {
+                alert("Masukkan jawaban Aljabar!");
+                return;
+            }
+
+            const correctAnswer = normalizeAlgebra(answerKeys[playerState.currentMission][playerState.currentQuestion]);
+            feedback.classList.remove('hidden');
+
+            if (userInput === correctAnswer) {
+                // Calculate Speed Bonus (Max +50 points if answered within 5 seconds, decreasing over 30s)
+                const elapsedSeconds = Math.max(1, Math.floor((Date.now() - playerState.questionStartTime) / 1000));
+                let speedBonus = Math.max(5, 50 - Math.floor(elapsedSeconds * 1.5));
+
+                const basePoints = 100;
+                const totalGained = basePoints + speedBonus;
+
+                feedback.className = "p-3 rounded-xl text-center text-xs font-bold transition-all bg-emerald-500/20 text-emerald-400 border border-emerald-500/50";
+                feedback.innerHTML = `<i class="fa-solid fa-circle-check text-base mr-1"></i> VERIFIKASI BENAR!<br><span class="text-[11px] font-normal">Poin Dasar: +${basePoints} | Speed Bonus (+${speedBonus} Poin)</span>`;
+
+                // Update Data
+                const pData = appState.scores[playerState.idKey];
+                if (pData) {
+                    if (!pData.solved[playerState.currentMission].includes(playerState.currentQuestion)) {
+                        pData.solved[playerState.currentMission].push(playerState.currentQuestion);
+                        pData.baseScore = (pData.baseScore || 0) + basePoints;
+                        pData.speedBonus = (pData.speedBonus || 0) + speedBonus;
+                        pData.totalScore = pData.baseScore + pData.speedBonus;
+
+                        broadcastStateUpdate('ANSWER_SUBMIT');
+                    }
+                }
+
+                updatePlayerHUD();
+                renderQuestionGrid();
+
+                input.value = '';
+                input.disabled = true;
+                document.getElementById('submitBtn').disabled = true;
+                playerState.currentQuestion = null;
+
+            } else {
+                feedback.className = "p-3 rounded-xl text-center text-xs font-bold transition-all bg-rose-500/20 text-rose-400 border border-rose-500/50";
+                feedback.innerHTML = `<i class="fa-solid fa-circle-xmark text-base mr-1"></i> JAWABAN BELUM TEPAT.<br><span class="text-[11px] font-normal">Coba periksa kembali aljabar Anda!</span>`;
+            }
+        }
+    </script>
+</body>
+</html>
