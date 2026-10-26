@@ -65,11 +65,11 @@
                 </div>
                 <div>
                     <h1 class="font-extrabold text-lg text-sky-400 tracking-wide">Verifikasi Jawaban</h1>
-                    <p class="text-xs text-slate-400 font-medium">By. Ms. Evi</p>
+                    <p class="text-xs text-slate-400 font-medium">By. Ms. Evi </p>
                 </div>
             </div>
 
-            <!-- Role Selector Tabs (Disembunyikan jika dibuka melalui Scan Barcode) -->
+            <!-- Role Selector Tabs (Disembunyikan otomatis jika diakses peserta via HP) -->
             <div id="roleSelectorContainer" class="flex bg-[#0b0f19] p-1 rounded-xl border border-[#2a3755]">
                 <button id="btnRoleHost" onclick="switchRole('host')" class="px-4 py-1.5 rounded-lg text-xs font-bold transition-all bg-sky-500 text-slate-950 shadow-md">
                     <i class="fa-solid fa-user-shield mr-1.5"></i> Dashboard Host
@@ -88,7 +88,6 @@
         <!-- VIEW HOST / GURU -->
         <!-- ========================================================================= -->
         <section id="hostView" class="space-y-6">
-            <!-- Host Top Bar Controls -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <!-- QR Code & Join Card -->
                 <div class="bg-[#151d30] p-5 rounded-2xl border border-[#2a3755] flex flex-col items-center justify-center text-center glow-effect">
@@ -105,7 +104,7 @@
                             <i class="fa-solid fa-rotate mr-1"></i> Sesi Baru
                         </button>
                         <button onclick="simulatePlayerJoin()" class="flex-1 py-2 px-3 bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-300 border border-indigo-500/30 rounded-xl text-xs font-semibold transition">
-                            <i class="fa-solid fa-up-right-from-square mr-1"></i> Buka Peserta
+                            <i class="fa-solid fa-up-right-from-square mr-1"></i> Uji Peserta
                         </button>
                     </div>
                 </div>
@@ -185,7 +184,7 @@
                         <thead class="bg-[#0b0f19] text-slate-400 uppercase text-[11px] font-bold tracking-wider">
                             <tr>
                                 <th class="p-3 rounded-l-xl">Peringkat</th>
-                                <th class="p-3" id="thLeaderboardName">Nama Kelompok</th>
+                                <th class="p-3" id="thLeaderboardName">Nama / Kelompok</th>
                                 <th class="p-3 text-center">Soal Selesai</th>
                                 <th class="p-3 text-center">Poin Dasar</th>
                                 <th class="p-3 text-center">Bonus Kecepatan</th>
@@ -206,7 +205,7 @@
         <!-- ========================================================================= -->
         <section id="playerView" class="hidden max-w-xl mx-auto space-y-5">
             
-            <!-- LAYAR 1: REGISTRASI DAN GABUNG -->
+            <!-- LAYAR 1: REGISTRASI PESERTA -->
             <div id="playerSetupCard" class="bg-[#151d30] p-6 rounded-2xl border border-[#2a3755] shadow-xl space-y-5">
                 <div class="text-center border-b border-[#2a3755] pb-4">
                     <span class="px-3 py-1 rounded-full text-[11px] font-bold bg-sky-500/10 text-sky-400 border border-sky-500/20 uppercase tracking-widest">
@@ -232,9 +231,8 @@
                     </div>
                 </div>
 
-                <!-- Input Fields dynamically changed -->
+                <!-- Input Fields -->
                 <div class="space-y-4 pt-2">
-                    <!-- Group Field -->
                     <div id="fieldGroup" class="space-y-1">
                         <label class="text-xs font-bold text-slate-400 uppercase">Pilih / Nama Kelompok:</label>
                         <select id="playerGroupSelect" class="w-full bg-[#0b0f19] border border-[#2a3755] rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-sky-400">
@@ -248,7 +246,6 @@
                         </select>
                     </div>
 
-                    <!-- Name Field -->
                     <div id="fieldName" class="space-y-1 hidden">
                         <label class="text-xs font-bold text-slate-400 uppercase">Nama Peserta / Lengkap:</label>
                         <input type="text" id="playerNameInput" placeholder="Masukkan nama Anda..." class="w-full bg-[#0b0f19] border border-[#2a3755] rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-sky-400">
@@ -275,7 +272,6 @@
 
             <!-- LAYAR 3: ARENA PERMAINAN PESERTA -->
             <div id="playerGameArea" class="hidden space-y-4">
-                <!-- HUD Player Stats -->
                 <div class="bg-[#151d30] p-4 rounded-2xl border border-[#2a3755] flex justify-between items-center">
                     <div>
                         <p class="text-[11px] text-slate-400 uppercase font-bold">Peserta Active</p>
@@ -300,15 +296,13 @@
                     </div>
                 </div>
 
-                <!-- Question Grid (30 Numbers) -->
+                <!-- Question Grid -->
                 <div class="bg-[#151d30] p-4 rounded-2xl border border-[#2a3755] space-y-3">
                     <div class="flex justify-between items-center">
                         <label id="questionLabel" class="text-xs font-bold text-slate-300 uppercase">Nomor Soal (Misi 1):</label>
                         <span class="text-[11px] text-slate-400"><i class="fa-solid fa-clock text-amber-400 mr-1"></i>Bonus Kecepatan Aktif</span>
                     </div>
-                    <div id="numbersGrid" class="grid grid-cols-6 gap-2 max-h-56 overflow-y-auto custom-scrollbar p-1">
-                        <!-- 1-30 Buttons injected by JS -->
-                    </div>
+                    <div id="numbersGrid" class="grid grid-cols-6 gap-2 max-h-56 overflow-y-auto custom-scrollbar p-1"></div>
                 </div>
 
                 <!-- Input & Submit Box -->
@@ -322,14 +316,7 @@
                         Submit Jawaban
                     </button>
 
-                    <!-- Feedback Box -->
                     <div id="feedback" class="hidden p-3 rounded-xl text-center text-xs font-bold transition-all"></div>
-
-                    <!-- Rules Box -->
-                    <div class="p-3 bg-[#0b0f19] rounded-xl border border-[#2a3755]/60 text-[11px] text-slate-400 space-y-1">
-                        <p>📌 <strong>Aturan Ketik:</strong> Tanpa spasi, huruf kecil (misal: <code>3x+2y</code>), pangkat gunakan <code>^</code> (misal: <code>x^2</code>).</p>
-                        <p>⚡ <strong>Speed Bonus:</strong> Jawab lebih cepat setelah memilih nomor soal untuk menambah hingga <strong>+50 Poin Bonus</strong>!</p>
-                    </div>
 
                     <button onclick="leavePlayerSession()" class="w-full text-center text-xs text-slate-500 hover:text-slate-300 pt-1">
                         Keluar / Ganti Identitas
@@ -348,7 +335,7 @@
 
 
     <!-- ========================================================================= -->
-    <!-- JAVASCRIPT SYSTEM ENGINE (FIREBASE REALTIME DATABASE INTEGRATED) -->
+    <!-- JAVASCRIPT SYSTEM ENGINE -->
     <!-- ========================================================================= -->
     <script>
         // -------------------------------------------------------------
@@ -370,10 +357,9 @@
         }
         const db = firebase.database();
 
-        // BroadcastChannel fallback for same-tab events
-        const syncChannel = new BroadcastChannel('adaptox_sync_channel');
-
+        // -------------------------------------------------------------
         // DATABASE KUNCI JAWABAN (5 Misi x 30 Soal)
+        // -------------------------------------------------------------
         const answerKeys = {
             1: { 1: "c", 2: "a", 3: "d", 4: "b", 5: "c", 6: "d", 7: "a", 8: "a", 9: "d", 10: "b", 11: "a", 12: "c", 13: "a", 14: "b", 15: "c", 16: "a", 17: "c", 18: "b", 19: "d", 20: "a", 21: "c", 22: "b", 23: "d", 24: "a", 25: "c", 26: "b", 27: "d", 28: "a", 29: "c", 30: "d" },
             2: { 1: "b", 2: "a", 3: "a", 4: "c", 5: "d", 6: "b", 7: "c", 8: "a", 9: "d", 10: "b", 11: "a", 12: "c", 13: "d", 14: "b", 15: "c", 16: "a", 17: "b", 18: "d", 19: "c", 20: "b", 21: "d", 22: "a", 23: "c", 24: "b", 25: "d", 26: "b", 27: "d", 28: "a", 29: "c", 30: "b" },
@@ -382,14 +368,13 @@
             5: { 1: "12x", 2: "10a^2", 3: "12xy", 4: "12p^3", 5: "6a^2+12a", 6: "12x^2+8x", 7: "10a^2-15a", 8: "6x^2+12xy-15x", 9: "x^2+5x+6", 10: "a^2+2a-8", 11: "2x^2+11x+12", 12: "6a^2+11a-10", 13: "2x^2+7xy+6y^2", 14: "6p^2+8pq-8q^2", 15: "2x^2+11x+15", 16: "4x", 17: "4a", 18: "3x", 19: "6a^2", 20: "6y", 21: "6x^2", 22: "6a^2", 23: "-4x^2", 24: "5a^2b", 25: "8p^2q^2", 26: "2x+3", 27: "4a+3", 28: "3x-2", 29: "6p^2+3p-2", 30: "4x+6" }
         };
 
-        // GLOBAL APP STATES
+        // APP STATE
         let appState = {
             sessionCode: 'EVIGAME-' + Math.floor(1000 + Math.random() * 9000),
             isStarted: false,
             scores: {}
         };
 
-        // PLAYER LOCAL STATE
         let playerState = {
             mode: 'kelompok',
             group: '',
@@ -402,48 +387,33 @@
 
         let currentLeaderboardTab = 'kelompok';
         let firebaseListener = null;
-        let isPlayerOnly = false;
 
-        // INIT APP ON LOAD
+        // INIT ON LOAD
         window.onload = function() {
             const urlParams = new URLSearchParams(window.location.search);
-            const sessionParam = urlParams.get('session');
-            const modeParam = urlParams.get('mode');
-
-            if (sessionParam) {
-                appState.sessionCode = sessionParam;
+            
+            // Cek apakah diakses dari scan HP peserta
+            if (urlParams.get('session')) {
+                appState.sessionCode = urlParams.get('session');
             }
 
-            // Memuat state lokal peserta jika ada
-            const savedPlayer = localStorage.getItem('evi_player_ident_' + appState.sessionCode);
-            if (savedPlayer) {
-                try {
-                    playerState = JSON.parse(savedPlayer);
-                } catch(e){}
-            }
+            setupQRCode();
+            initFirebaseRealtimeSync();
 
-            // DETEKSI PESERTA (SCAN QR CODE): Jika mode === 'player'
-            if (modeParam === 'player') {
-                isPlayerOnly = true;
-                document.getElementById('roleSelectorContainer').classList.add('hidden');
+            if (urlParams.get('mode') === 'player') {
                 switchRole('player');
+                // Sembunyikan tombol ganti role agar peserta murni hanya melihat tampilan player
+                document.getElementById('roleSelectorContainer').classList.add('hidden');
             } else {
                 switchRole('host');
             }
 
-            loadStorageState();
-            setupQRCode();
-            initFirebaseRealtimeSync();
-
-            syncChannel.onmessage = (event) => {
-                if (event.data && event.data.type) {
-                    handleSyncMessage(event.data);
-                }
-            };
+            renderHostDashboard();
+            checkPlayerSessionState();
         };
 
         // -------------------------------------------------------------
-        // STORAGE & FIREBASE REALTIME SYNC ENGINE
+        // FIREBASE SYNC ENGINE
         // -------------------------------------------------------------
         function initFirebaseRealtimeSync() {
             const sessionRef = db.ref('verifikasi_sessions/' + appState.sessionCode);
@@ -455,59 +425,15 @@
             firebaseListener = sessionRef.on('value', (snapshot) => {
                 const data = snapshot.val();
                 if (data) {
-                    appState = data;
-                    if (!appState.scores) appState.scores = {};
-                    saveStorageState();
-                    
-                    if (!isPlayerOnly) {
-                        renderHostDashboard();
-                    }
+                    appState.isStarted = data.isStarted !== undefined ? data.isStarted : false;
+                    appState.scores = data.scores || {};
+                    renderHostDashboard();
                     checkPlayerSessionState();
+                } else {
+                    // Jika session belum ada di database, buat inisialisasi awal oleh host
+                    sessionRef.set({ isStarted: false, scores: {} });
                 }
             });
-        }
-
-        function loadStorageState() {
-            const saved = localStorage.getItem('evi_adaptox_state_' + appState.sessionCode);
-            if (saved) {
-                try {
-                    const parsed = JSON.parse(saved);
-                    appState = parsed;
-                } catch(e) {}
-            }
-        }
-
-        function saveStorageState() {
-            localStorage.setItem('evi_adaptox_state_' + appState.sessionCode, JSON.stringify(appState));
-        }
-
-        function pushDataToFirebase() {
-            saveStorageState();
-            db.ref('verifikasi_sessions/' + appState.sessionCode).set(appState)
-                .catch(err => console.error("Firebase Update Error:", err));
-        }
-
-        function broadcastStateUpdate(actionType, extraData = {}) {
-            pushDataToFirebase();
-            syncChannel.postMessage({
-                type: actionType,
-                appState: appState,
-                sender: playerState.idKey || 'HOST',
-                ...extraData
-            });
-        }
-
-        function handleSyncMessage(data) {
-            if (data.appState) {
-                appState = data.appState;
-                saveStorageState();
-            }
-
-            if (!isPlayerOnly) {
-                renderHostDashboard();
-            }
-
-            checkPlayerSessionState();
         }
 
         // -------------------------------------------------------------
@@ -519,35 +445,30 @@
             const btnHost = document.getElementById('btnRoleHost');
             const btnPlayer = document.getElementById('btnRolePlayer');
 
-            if (role === 'host' && !isPlayerOnly) {
+            if (role === 'host') {
                 hostView.classList.remove('hidden');
                 playerView.classList.add('hidden');
-
                 btnHost.className = "px-4 py-1.5 rounded-lg text-xs font-bold transition-all bg-sky-500 text-slate-950 shadow-md";
                 btnPlayer.className = "px-4 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-white";
                 renderHostDashboard();
             } else {
                 hostView.classList.add('hidden');
                 playerView.classList.remove('hidden');
-
-                if (!isPlayerOnly) {
-                    btnPlayer.className = "px-4 py-1.5 rounded-lg text-xs font-bold transition-all bg-sky-500 text-slate-950 shadow-md";
-                    btnHost.className = "px-4 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-white";
-                }
+                btnPlayer.className = "px-4 py-1.5 rounded-lg text-xs font-bold transition-all bg-sky-500 text-slate-950 shadow-md";
+                btnHost.className = "px-4 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-white";
                 checkPlayerSessionState();
             }
         }
 
         function setupQRCode() {
-            const qrContainer = document.getElementById('qrcode');
-            if (!qrContainer) return;
-            qrContainer.innerHTML = "";
+            document.getElementById('qrcode').innerHTML = "";
             document.getElementById('sessionCodeDisplay').innerText = appState.sessionCode;
             
-            // Generate link scan dengan mode player
-            const joinUrl = window.location.origin + window.location.pathname + '?mode=player&session=' + appState.sessionCode;
+            // Format URL agar mengarah ke file online (pastikan URL ini domain hosting Anda, misal GitHub Pages)
+            const baseUrl = window.location.href.split('?')[0];
+            const joinUrl = baseUrl + '?mode=player&session=' + appState.sessionCode;
             
-            new QRCode(qrContainer, {
+            new QRCode(document.getElementById("qrcode"), {
                 text: joinUrl,
                 width: 130,
                 height: 130,
@@ -558,35 +479,30 @@
         }
 
         function generateNewSession() {
-            if (confirm("Buat sesi baru? Semua data skor peserta saat ini akan di-reset.")) {
+            if (confirm("Buat sesi baru? Semua data skor peserta akan di-reset.")) {
                 appState.sessionCode = 'EVIGAME-' + Math.floor(1000 + Math.random() * 9000);
                 appState.isStarted = false;
                 appState.scores = {};
                 setupQRCode();
+                db.ref('verifikasi_sessions/' + appState.sessionCode).set({ isStarted: false, scores: {} });
                 initFirebaseRealtimeSync();
-                broadcastStateUpdate('NEW_SESSION');
             }
         }
 
         function simulatePlayerJoin() {
-            const joinUrl = window.location.origin + window.location.pathname + '?mode=player&session=' + appState.sessionCode;
-            window.open(joinUrl, '_blank');
+            switchRole('player');
         }
 
         // -------------------------------------------------------------
         // HOST CONTROL ENGINE
         // -------------------------------------------------------------
         function setGameState(started) {
-            appState.isStarted = started;
-            broadcastStateUpdate('GAME_STATE_CHANGE', { isStarted: started });
-            renderHostDashboard();
+            db.ref('verifikasi_sessions/' + appState.sessionCode + '/isStarted').set(started);
         }
 
         function resetAllScores() {
             if (confirm("Yakin ingin menghapus seluruh progres dan skor peserta?")) {
-                appState.scores = {};
-                broadcastStateUpdate('RESET_SCORES');
-                renderHostDashboard();
+                db.ref('verifikasi_sessions/' + appState.sessionCode + '/scores').set({});
             }
         }
 
@@ -598,7 +514,6 @@
             if (appState.isStarted) {
                 statusBadge.className = "px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center gap-1.5 active-pulse";
                 statusBadge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Permainan Berlangsung`;
-
                 btnStart.disabled = true;
                 btnStart.classList.add('opacity-50', 'cursor-not-allowed');
                 btnStop.disabled = false;
@@ -606,14 +521,12 @@
             } else {
                 statusBadge.className = "px-3 py-1 rounded-full text-xs font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center gap-1.5";
                 statusBadge.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-400"></span> Belum Dimulai / Dihentikan`;
-
                 btnStart.disabled = false;
                 btnStart.classList.remove('opacity-50', 'cursor-not-allowed');
                 btnStop.disabled = true;
                 btnStop.classList.add('opacity-50', 'cursor-not-allowed');
             }
 
-            // Hitung peserta terdaftar secara realtime
             const players = Object.values(appState.scores || {});
             document.getElementById('totalConnectedPlayers').innerText = players.length;
             
@@ -646,11 +559,9 @@
 
         function renderLeaderboardTable() {
             const tbody = document.getElementById('leaderboardBody');
-            if (!tbody) return;
             tbody.innerHTML = '';
 
             const filtered = Object.values(appState.scores || {}).filter(p => p.mode === currentLeaderboardTab);
-
             filtered.sort((a, b) => b.totalScore - a.totalScore);
 
             if (filtered.length === 0) {
@@ -694,11 +605,9 @@
         // -------------------------------------------------------------
         function selectPlayerMode(mode) {
             playerState.mode = mode;
-
             const btnKel = document.getElementById('btnModeKelompok');
             const btnInd = document.getElementById('btnModeIndividu');
             const btnGab = document.getElementById('btnModeGabungan');
-
             const fGroup = document.getElementById('fieldGroup');
             const fName = document.getElementById('fieldName');
 
@@ -739,39 +648,32 @@
             playerState.group = groupVal;
             playerState.name = nameVal;
 
-            if (playerState.mode === 'kelompok') playerState.idKey = `GRP_${groupVal}`;
+            if (playerState.mode === 'kelompok') playerState.idKey = `GRP_${groupVal.replace(/\s+/g, '_')}`;
             else if (playerState.mode === 'individu') playerState.idKey = `IND_${nameVal.replace(/\s+/g, '_')}`;
-            else playerState.idKey = `CMB_${groupVal}_${nameVal.replace(/\s+/g, '_')}`;
+            else playerState.idKey = `CMB_${groupVal.replace(/\s+/g, '_')}_${nameVal.replace(/\s+/g, '_')}`;
 
-            // Simpan identitas peserta secara lokal
-            localStorage.setItem('evi_player_ident_' + appState.sessionCode, JSON.stringify(playerState));
+            const playerPayload = {
+                key: playerState.idKey,
+                mode: playerState.mode,
+                group: playerState.group,
+                name: playerState.name,
+                baseScore: 0,
+                speedBonus: 0,
+                totalScore: 0,
+                solved: { 1: [], 2: [], 3: [], 4: [], 5: [] }
+            };
 
-            if (!appState.scores) appState.scores = {};
-
-            // Tambahkan peserta ke Firebase state
-            if (!appState.scores[playerState.idKey]) {
-                appState.scores[playerState.idKey] = {
-                    key: playerState.idKey,
-                    mode: playerState.mode,
-                    group: playerState.group,
-                    name: playerState.name,
-                    baseScore: 0,
-                    speedBonus: 0,
-                    totalScore: 0,
-                    solved: { 1: [], 2: [], 3: [], 4: [], 5: [] }
-                };
-            }
-
-            // Sync langsung ke Realtime Database
-            db.ref(`verifikasi_sessions/${appState.sessionCode}/scores/${playerState.idKey}`).set(appState.scores[playerState.idKey])
+            // Simpan langsung ke Firebase Database Realtime agar langsung masuk ke daftar peserta host
+            db.ref(`verifikasi_sessions/${appState.sessionCode}/scores/${playerState.idKey}`).set(playerPayload)
                 .then(() => {
-                    broadcastStateUpdate('PLAYER_JOIN');
                     checkPlayerSessionState();
+                })
+                .catch(err => {
+                    alert("Gagal bergabung ke database: " + err.message);
                 });
         }
 
         function leavePlayerSession() {
-            localStorage.removeItem('evi_player_ident_' + appState.sessionCode);
             playerState.idKey = '';
             checkPlayerSessionState();
         }
@@ -781,9 +683,7 @@
             const waitCard = document.getElementById('playerWaitingCard');
             const gameArea = document.getElementById('playerGameArea');
 
-            if (!setupCard || !waitCard || !gameArea) return;
-
-            if (!playerState.idKey) {
+            if (!playerState.idKey || !appState.scores || !appState.scores[playerState.idKey]) {
                 setupCard.classList.remove('hidden');
                 waitCard.classList.add('hidden');
                 gameArea.classList.add('hidden');
@@ -814,11 +714,9 @@
         }
 
         function updatePlayerHUD() {
-            if (!appState.scores) return;
+            if (!appState.scores || !appState.scores[playerState.idKey]) return;
             const pData = appState.scores[playerState.idKey];
-            if (pData) {
-                document.getElementById('hudPlayerScore').innerText = pData.totalScore || 0;
-            }
+            document.getElementById('hudPlayerScore').innerText = pData.totalScore || 0;
         }
 
         function switchMission(missionNo, btnElement) {
@@ -833,7 +731,6 @@
             }
 
             document.getElementById('questionLabel').innerText = `Nomor Soal (Misi ${missionNo}):`;
-
             const input = document.getElementById('answerInput');
             input.value = '';
             input.disabled = true;
@@ -846,10 +743,9 @@
 
         function renderQuestionGrid() {
             const grid = document.getElementById('numbersGrid');
-            if (!grid) return;
             grid.innerHTML = '';
 
-            const pData = appState.scores ? appState.scores[playerState.idKey] : null;
+            const pData = (appState.scores && appState.scores[playerState.idKey]) ? appState.scores[playerState.idKey] : null;
             const solvedList = (pData && pData.solved) ? pData.solved[playerState.currentMission] || [] : [];
 
             for (let i = 1; i <= 30; i++) {
@@ -867,7 +763,6 @@
                     }
                     btn.onclick = () => selectQuestion(i);
                 }
-
                 grid.appendChild(btn);
             }
         }
@@ -875,7 +770,6 @@
         function selectQuestion(no) {
             playerState.currentQuestion = no;
             playerState.questionStartTime = Date.now();
-
             renderQuestionGrid();
 
             const input = document.getElementById('answerInput');
@@ -930,7 +824,8 @@
                         pData.speedBonus = (pData.speedBonus || 0) + speedBonus;
                         pData.totalScore = pData.baseScore + pData.speedBonus;
 
-                        broadcastStateUpdate('ANSWER_SUBMIT');
+                        // Perbarui data ke Firebase Database secara realtime
+                        db.ref(`verifikasi_sessions/${appState.sessionCode}/scores/${playerState.idKey}`).set(pData);
                     }
                 }
 
