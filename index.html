@@ -69,7 +69,7 @@
                 </div>
             </div>
 
-            <!-- Role Selector Tabs (Disembunyikan otomatis jika diakses peserta via HP) -->
+            <!-- Role Selector Tabs -->
             <div id="roleSelectorContainer" class="flex bg-[#0b0f19] p-1 rounded-xl border border-[#2a3755]">
                 <button id="btnRoleHost" onclick="switchRole('host')" class="px-4 py-1.5 rounded-lg text-xs font-bold transition-all bg-sky-500 text-slate-950 shadow-md">
                     <i class="fa-solid fa-user-shield mr-1.5"></i> Dashboard Host
@@ -95,7 +95,9 @@
                         <i class="fa-solid fa-qrcode"></i> Scan untuk Bergabung
                     </h2>
                     
-                    <div id="qrcode" class="p-3 bg-white rounded-xl shadow-md my-2"></div>
+                    <div class="p-4 bg-white rounded-2xl shadow-lg my-2 flex items-center justify-center border-4 border-white">
+                        <div id="qrcode"></div>
+                    </div>
                     
                     <p class="text-xs text-slate-400 mt-1">Sesi Game ID: <span id="sessionCodeDisplay" class="font-mono text-sky-400 font-bold">---</span></p>
                     
@@ -299,10 +301,10 @@
                 <!-- Question Grid -->
                 <div class="bg-[#151d30] p-4 rounded-2xl border border-[#2a3755] space-y-3">
                     <div class="flex justify-between items-center">
-                        <label id="questionLabel" class="text-xs font-bold text-slate-300 uppercase">Nomor Soal (Misi 1):</label>
+                        <label id="questionLabel" class="text-xs font-bold text-slate-300 uppercase">Nomor Soal (No. 1 - 30):</label>
                         <span class="text-[11px] text-slate-400"><i class="fa-solid fa-clock text-amber-400 mr-1"></i>Bonus Kecepatan Aktif</span>
                     </div>
-                    <div id="numbersGrid" class="grid grid-cols-6 gap-2 max-h-56 overflow-y-auto custom-scrollbar p-1"></div>
+                    <div id="numbersGrid" class="grid grid-cols-5 gap-2 max-h-56 overflow-y-auto custom-scrollbar p-1"></div>
                 </div>
 
                 <!-- Input & Submit Box -->
@@ -358,14 +360,23 @@
         const db = firebase.database();
 
         // -------------------------------------------------------------
-        // DATABASE KUNCI JAWABAN (5 Misi x 30 Soal)
+        // DATABASE KUNCI JAWABAN (5 Misi x 30 Soal = Total 150 Soal)
         // -------------------------------------------------------------
         const answerKeys = {
             1: { 1: "c", 2: "a", 3: "d", 4: "b", 5: "c", 6: "d", 7: "a", 8: "a", 9: "d", 10: "b", 11: "a", 12: "c", 13: "a", 14: "b", 15: "c", 16: "a", 17: "c", 18: "b", 19: "d", 20: "a", 21: "c", 22: "b", 23: "d", 24: "a", 25: "c", 26: "b", 27: "d", 28: "a", 29: "c", 30: "d" },
-            2: { 1: "b", 2: "a", 3: "a", 4: "c", 5: "d", 6: "b", 7: "c", 8: "a", 9: "d", 10: "b", 11: "a", 12: "c", 13: "d", 14: "b", 15: "c", 16: "a", 17: "b", 18: "d", 19: "c", 20: "b", 21: "d", 22: "a", 23: "c", 24: "b", 25: "d", 26: "b", 27: "d", 28: "a", 29: "c", 30: "b" },
-            3: { 1: "d", 2: "a", 3: "c", 4: "b", 5: "d", 6: "a", 7: "c", 8: "a", 9: "c", 10: "b", 11: "d", 12: "c", 13: "a", 14: "c", 15: "b", 16: "8x", 17: "11a", 18: "11y", 19: "7x+3", 20: "11a+4b", 21: "7a+7", 22: "7a+7b", 23: "10x+5", 24: "9p+6q+3", 25: "9x+y+13", 26: "12x-3y+5", 27: "7a^2+3a+5", 28: "7x^2-2x", 29: "5p^2+3p-3", 30: "9x+5y" },
-            4: { 1: "5x", 2: "7a", 3: "5y", 4: "5x+5", 5: "7a+6b", 6: "4x+5", 7: "5a+3b", 8: "6x-9", 9: "5p+5q+3", 10: "4x+8y+4", 11: "5x+9y-9", 12: "5a^2+9a-9", 13: "4x^2-7x+6", 14: "4p^2+8p-12", 15: "5x+3y", 16: "6x", 17: "7a", 18: "2y+6", 19: "5p+3q", 20: "11x+3", 21: "5x+3", 22: "3a+4b", 23: "7x-4", 24: "10p+2q-3", 25: "3x+7y-5", 26: "3x-2", 27: "3a^2+8a-10", 28: "x^2+9x+2", 29: "5p^2-10p+11", 30: "8x+14" },
-            5: { 1: "12x", 2: "10a^2", 3: "12xy", 4: "12p^3", 5: "6a^2+12a", 6: "12x^2+8x", 7: "10a^2-15a", 8: "6x^2+12xy-15x", 9: "x^2+5x+6", 10: "a^2+2a-8", 11: "2x^2+11x+12", 12: "6a^2+11a-10", 13: "2x^2+7xy+6y^2", 14: "6p^2+8pq-8q^2", 15: "2x^2+11x+15", 16: "4x", 17: "4a", 18: "3x", 19: "6a^2", 20: "6y", 21: "6x^2", 22: "6a^2", 23: "-4x^2", 24: "5a^2b", 25: "8p^2q^2", 26: "2x+3", 27: "4a+3", 28: "3x-2", 29: "6p^2+3p-2", 30: "4x+6" }
+            2: { 31: "b", 32: "a", 33: "a", 34: "c", 35: "d", 36: "b", 37: "c", 38: "a", 39: "d", 40: "b", 41: "a", 42: "c", 43: "d", 44: "b", 45: "c", 46: "a", 47: "b", 48: "d", 49: "c", 50: "b", 51: "d", 52: "a", 53: "c", 54: "b", 55: "d", 56: "b", 57: "d", 58: "a", 59: "c", 60: "b" },
+            3: { 61: "d", 62: "a", 63: "c", 64: "b", 65: "d", 66: "a", 67: "c", 68: "a", 69: "c", 70: "b", 71: "d", 72: "c", 73: "a", 74: "c", 75: "b", 76: "8x", 77: "11a", 78: "11y", 79: "7x+3", 80: "11a+4b", 81: "7a+7", 82: "7a+7b", 83: "10x+5", 84: "9p+6q+3", 85: "9x+y+13", 86: "12x-3y+5", 87: "7a^2+3a+5", 88: "7x^2-2x", 89: "5p^2+3p-3", 90: "9x+5y" },
+            4: { 91: "5x", 92: "7a", 93: "5y", 94: "5x+5", 95: "7a+6b", 96: "4x+5", 97: "5a+3b", 98: "6x-9", 99: "5p+5q+3", 100: "4x+8y+4", 101: "5x+9y-9", 102: "5a^2+9a-9", 103: "4x^2-7x+6", 104: "4p^2+8p-12", 105: "5x+3y", 106: "6x", 107: "7a", 108: "2y+6", 109: "5p+3q", 110: "11x+3", 111: "5x+3", 112: "3a+4b", 113: "7x-4", 114: "10p+2q-3", 115: "3x+7y-5", 116: "3x-2", 117: "3a^2+8a-10", 118: "x^2+9x+2", 119: "5p^2-10p+11", 120: "8x+14" },
+            5: { 121: "12x", 122: "10a^2", 123: "12xy", 124: "12p^3", 125: "6a^2+12a", 126: "12x^2+8x", 127: "10a^2-15a", 128: "6x^2+12xy-15x", 129: "x^2+5x+6", 130: "a^2+2a-8", 131: "2x^2+11x+12", 132: "6a^2+11a-10", 133: "2x^2+7xy+6y^2", 134: "6p^2+8pq-8q^2", 135: "2x^2+11x+15", 136: "4x", 137: "4a", 138: "3x", 139: "6a^2", 140: "6y", 141: "6x^2", 142: "6a^2", 143: "-4x^2", 144: "5a^2b", 145: "8p^2q^2", 146: "2x+3", 147: "4a+3", 148: "3x-2", 149: "6p^2+3p-2", 150: "4x+6" }
+        };
+
+        // RANGE NOMOR BERDASARKAN MISI
+        const missionRanges = {
+            1: { start: 1, end: 30 },
+            2: { start: 31, end: 60 },
+            3: { start: 61, end: 90 },
+            4: { start: 91, end: 120 },
+            5: { start: 121, end: 150 }
         };
 
         // APP STATE
@@ -392,7 +403,6 @@
         window.onload = function() {
             const urlParams = new URLSearchParams(window.location.search);
             
-            // Cek apakah diakses dari scan HP peserta
             if (urlParams.get('session')) {
                 appState.sessionCode = urlParams.get('session');
             }
@@ -402,7 +412,6 @@
 
             if (urlParams.get('mode') === 'player') {
                 switchRole('player');
-                // Sembunyikan tombol ganti role agar peserta murni hanya melihat tampilan player
                 document.getElementById('roleSelectorContainer').classList.add('hidden');
             } else {
                 switchRole('host');
@@ -430,7 +439,6 @@
                     renderHostDashboard();
                     checkPlayerSessionState();
                 } else {
-                    // Jika session belum ada di database, buat inisialisasi awal oleh host
                     sessionRef.set({ isStarted: false, scores: {} });
                 }
             });
@@ -461,20 +469,20 @@
         }
 
         function setupQRCode() {
-            document.getElementById('qrcode').innerHTML = "";
+            const qrContainer = document.getElementById('qrcode');
+            qrContainer.innerHTML = "";
             document.getElementById('sessionCodeDisplay').innerText = appState.sessionCode;
             
-            // Format URL agar mengarah ke file online (pastikan URL ini domain hosting Anda, misal GitHub Pages)
             const baseUrl = window.location.href.split('?')[0];
             const joinUrl = baseUrl + '?mode=player&session=' + appState.sessionCode;
             
-            new QRCode(document.getElementById("qrcode"), {
+            new QRCode(qrContainer, {
                 text: joinUrl,
-                width: 130,
-                height: 130,
-                colorDark : "#0b0f19",
+                width: 140,
+                height: 140,
+                colorDark : "#000000",
                 colorLight : "#ffffff",
-                correctLevel : QRCode.CorrectLevel.H
+                correctLevel : QRCode.CorrectLevel.M
             });
         }
 
@@ -533,8 +541,11 @@
             let totalCorrect = 0;
             players.forEach(p => {
                 if (p.solved) {
-                    Object.values(p.solved).forEach(arr => {
-                        if (Array.isArray(arr)) totalCorrect += arr.length;
+                    Object.values(p.solved).forEach(missionObj => {
+                        if (missionObj) {
+                            if (Array.isArray(missionObj)) totalCorrect += missionObj.length;
+                            else totalCorrect += Object.keys(missionObj).length;
+                        }
                     });
                 }
             });
@@ -577,8 +588,11 @@
 
                 let solvedCount = 0;
                 if (item.solved) {
-                    Object.values(item.solved).forEach(a => {
-                        if (Array.isArray(a)) solvedCount += a.length;
+                    Object.values(item.solved).forEach(missionObj => {
+                        if (missionObj) {
+                            if (Array.isArray(missionObj)) solvedCount += missionObj.length;
+                            else solvedCount += Object.keys(missionObj).length;
+                        }
                     });
                 }
 
@@ -660,10 +674,9 @@
                 baseScore: 0,
                 speedBonus: 0,
                 totalScore: 0,
-                solved: { 1: [], 2: [], 3: [], 4: [], 5: [] }
+                solved: {}
             };
 
-            // Simpan langsung ke Firebase Database Realtime agar langsung masuk ke daftar peserta host
             db.ref(`verifikasi_sessions/${appState.sessionCode}/scores/${playerState.idKey}`).set(playerPayload)
                 .then(() => {
                     checkPlayerSessionState();
@@ -730,7 +743,9 @@
                 btnElement.className = "btn-mission py-2 rounded-lg bg-sky-500 text-slate-950 text-xs font-bold transition";
             }
 
-            document.getElementById('questionLabel').innerText = `Nomor Soal (Misi ${missionNo}):`;
+            const range = missionRanges[missionNo];
+            document.getElementById('questionLabel').innerText = `Nomor Soal (No. ${range.start} - ${range.end}):`;
+            
             const input = document.getElementById('answerInput');
             input.value = '';
             input.disabled = true;
@@ -746,13 +761,17 @@
             grid.innerHTML = '';
 
             const pData = (appState.scores && appState.scores[playerState.idKey]) ? appState.scores[playerState.idKey] : null;
-            const solvedList = (pData && pData.solved) ? pData.solved[playerState.currentMission] || [] : [];
+            const solvedObj = (pData && pData.solved && pData.solved[playerState.currentMission]) ? pData.solved[playerState.currentMission] : {};
 
-            for (let i = 1; i <= 30; i++) {
+            const range = missionRanges[playerState.currentMission];
+
+            for (let i = range.start; i <= range.end; i++) {
                 const btn = document.createElement('button');
                 btn.innerText = i;
 
-                if (solvedList.includes(i)) {
+                const isSolved = Array.isArray(solvedObj) ? solvedObj.includes(i) : !!solvedObj[i];
+
+                if (isSolved) {
                     btn.className = "py-2 bg-emerald-500/20 text-emerald-400 border border-emerald-500/50 font-bold text-xs rounded-lg cursor-default relative";
                     btn.innerHTML = `${i} <i class="fa-solid fa-check text-[9px] absolute top-1 right-1"></i>`;
                 } else {
@@ -774,7 +793,7 @@
 
             const input = document.getElementById('answerInput');
             input.disabled = false;
-            input.placeholder = `Jawaban Misi ${playerState.currentMission} No. ${no}...`;
+            input.placeholder = `Jawaban Soal No. ${no}...`;
             input.value = '';
             input.focus();
 
@@ -814,17 +833,25 @@
 
                 const pData = appState.scores[playerState.idKey];
                 if (pData) {
+                    if (!pData.solved) pData.solved = {};
                     if (!pData.solved[playerState.currentMission]) {
-                        pData.solved[playerState.currentMission] = [];
+                        pData.solved[playerState.currentMission] = {};
                     }
 
-                    if (!pData.solved[playerState.currentMission].includes(playerState.currentQuestion)) {
-                        pData.solved[playerState.currentMission].push(playerState.currentQuestion);
+                    let missionSolved = pData.solved[playerState.currentMission];
+                    if (Array.isArray(missionSolved)) {
+                        let obj = {};
+                        missionSolved.forEach(q => obj[q] = true);
+                        missionSolved = obj;
+                        pData.solved[playerState.currentMission] = missionSolved;
+                    }
+
+                    if (!missionSolved[playerState.currentQuestion]) {
+                        missionSolved[playerState.currentQuestion] = true;
                         pData.baseScore = (pData.baseScore || 0) + basePoints;
                         pData.speedBonus = (pData.speedBonus || 0) + speedBonus;
                         pData.totalScore = pData.baseScore + pData.speedBonus;
 
-                        // Perbarui data ke Firebase Database secara realtime
                         db.ref(`verifikasi_sessions/${appState.sessionCode}/scores/${playerState.idKey}`).set(pData);
                     }
                 }
