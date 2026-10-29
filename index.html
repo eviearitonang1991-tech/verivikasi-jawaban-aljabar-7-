@@ -674,7 +674,8 @@
                 baseScore: 0,
                 speedBonus: 0,
                 totalScore: 0,
-                solved: {}
+                solved: {},
+                failedAttempts: {}
             };
 
             db.ref(`verifikasi_sessions/${appState.sessionCode}/scores/${playerState.idKey}`).set(playerPayload)
@@ -762,6 +763,7 @@
 
             const pData = (appState.scores && appState.scores[playerState.idKey]) ? appState.scores[playerState.idKey] : null;
             const solvedObj = (pData && pData.solved && pData.solved[playerState.currentMission]) ? pData.solved[playerState.currentMission] : {};
+            const failedObj = (pData && pData.failedAttempts && pData.failedAttempts[playerState.currentMission]) ? pData.failedAttempts[playerState.currentMission] : {};
 
             const range = missionRanges[playerState.currentMission];
 
@@ -770,10 +772,15 @@
                 btn.innerText = i;
 
                 const isSolved = Array.isArray(solvedObj) ? solvedObj.includes(i) : !!solvedObj[i];
+                const fails = failedObj[i] || 0;
+                const isLocked = fails >= 2;
 
                 if (isSolved) {
                     btn.className = "py-2 bg-emerald-500/20 text-emerald-400 border border-emerald-500/50 font-bold text-xs rounded-lg cursor-default relative";
                     btn.innerHTML = `${i} <i class="fa-solid fa-check text-[9px] absolute top-1 right-1"></i>`;
+                } else if (isLocked) {
+                    btn.className = "py-2 bg-rose-500/20 text-rose-400 border border-rose-500/50 font-bold text-xs rounded-lg cursor-not-allowed relative";
+                    btn.innerHTML = `${i} <i class="fa-solid fa-xmark text-[10px] absolute top-1 right-1"></i>`;
                 } else {
                     if (playerState.currentQuestion === i) {
                         btn.className = "py-2 bg-sky-500 text-slate-950 border border-sky-400 font-extrabold text-xs rounded-lg shadow-md";
@@ -820,6 +827,22 @@
                 return;
             }
 
+            const pData = appState.scores[playerState.idKey];
+            if (!pData) return;
+
+            // Inisialisasi struktur failedAttempts jika belum ada
+            if (!pData.failedAttempts) pData.failedAttempts = {};
+            if (!pData.failedAttempts[playerState.currentMission]) {
+                pData.failedAttempts[playerState.currentMission] = {};
+            }
+            let missionFailed = pData.failedAttempts[playerState.currentMission];
+            let currentFails = missionFailed[playerState.currentQuestion] || 0;
+
+            if (currentFails >= 2) {
+                alert("Soal ini sudah terkunci karena telah salah menjawab sebanyak 2 kali.");
+                return;
+            }
+
             const correctAnswer = normalizeAlgebra(answerKeys[playerState.currentMission][playerState.currentQuestion]);
             feedback.classList.remove('hidden');
 
@@ -831,29 +854,26 @@
                 feedback.className = "p-3 rounded-xl text-center text-xs font-bold transition-all bg-emerald-500/20 text-emerald-400 border border-emerald-500/50";
                 feedback.innerHTML = `<i class="fa-solid fa-circle-check text-base mr-1"></i> VERIFIKASI BENAR!<br><span class="text-[11px] font-normal">Poin Dasar: +${basePoints} | Speed Bonus (+${speedBonus} Poin)</span>`;
 
-                const pData = appState.scores[playerState.idKey];
-                if (pData) {
-                    if (!pData.solved) pData.solved = {};
-                    if (!pData.solved[playerState.currentMission]) {
-                        pData.solved[playerState.currentMission] = {};
-                    }
+                if (!pData.solved) pData.solved = {};
+                if (!pData.solved[playerState.currentMission]) {
+                    pData.solved[playerState.currentMission] = {};
+                }
 
-                    let missionSolved = pData.solved[playerState.currentMission];
-                    if (Array.isArray(missionSolved)) {
-                        let obj = {};
-                        missionSolved.forEach(q => obj[q] = true);
-                        missionSolved = obj;
-                        pData.solved[playerState.currentMission] = missionSolved;
-                    }
+                let missionSolved = pData.solved[playerState.currentMission];
+                if (Array.isArray(missionSolved)) {
+                    let obj = {};
+                    missionSolved.forEach(q => obj[q] = true);
+                    missionSolved = obj;
+                    pData.solved[playerState.currentMission] = missionSolved;
+                }
 
-                    if (!missionSolved[playerState.currentQuestion]) {
-                        missionSolved[playerState.currentQuestion] = true;
-                        pData.baseScore = (pData.baseScore || 0) + basePoints;
-                        pData.speedBonus = (pData.speedBonus || 0) + speedBonus;
-                        pData.totalScore = pData.baseScore + pData.speedBonus;
+                if (!missionSolved[playerState.currentQuestion]) {
+                    missionSolved[playerState.currentQuestion] = true;
+                    pData.baseScore = (pData.baseScore || 0) + basePoints;
+                    pData.speedBonus = (pData.speedBonus || 0) + speedBonus;
+                    pData.totalScore = pData.baseScore + pData.speedBonus;
 
-                        db.ref(`verifikasi_sessions/${appState.sessionCode}/scores/${playerState.idKey}`).set(pData);
-                    }
+                    db.ref(`verifikasi_sessions/${appState.sessionCode}/scores/${playerState.idKey}`).set(pData);
                 }
 
                 updatePlayerHUD();
@@ -865,8 +885,28 @@
                 playerState.currentQuestion = null;
 
             } else {
-                feedback.className = "p-3 rounded-xl text-center text-xs font-bold transition-all bg-rose-500/20 text-rose-400 border border-rose-500/50";
-                feedback.innerHTML = `<i class="fa-solid fa-circle-xmark text-base mr-1"></i> JAWABAN BELUM TEPAT.<br><span class="text-[11px] font-normal">Coba periksa kembali aljabar Anda!</span>`;
+                currentFails += 1;
+                missionFailed[playerState.currentQuestion] = currentFails;
+
+                // Kurangi 50 poin setiap kesalahan
+                pData.totalScore = (pData.totalScore || 0) - 50;
+
+                db.ref(`verifikasi_sessions/${appState.sessionCode}/scores/${playerState.idKey}`).set(pData);
+                updatePlayerHUD();
+                renderQuestionGrid();
+
+                if (currentFails >= 2) {
+                    feedback.className = "p-3 rounded-xl text-center text-xs font-bold transition-all bg-rose-500/20 text-rose-400 border border-rose-500/50";
+                    feedback.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-base mr-1"></i> SALAH KEDUA KALI!<br><span class="text-[11px] font-normal">Nomor soal telah terkunci (Pengurangan total -50 poin).</span>`;
+                    
+                    input.value = '';
+                    input.disabled = true;
+                    document.getElementById('submitBtn').disabled = true;
+                    playerState.currentQuestion = null;
+                } else {
+                    feedback.className = "p-3 rounded-xl text-center text-xs font-bold transition-all bg-rose-500/20 text-rose-400 border border-rose-500/50";
+                    feedback.innerHTML = `<i class="fa-solid fa-circle-xmark text-base mr-1"></i> JAWABAN SALAH (Kesempatan ke-${currentFails}/2).<br><span class="text-[11px] font-normal">Poin dikurangi 50. Silakan coba sekali lagi!</span>`;
+                }
             }
         }
     </script>
