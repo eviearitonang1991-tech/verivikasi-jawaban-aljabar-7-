@@ -95,7 +95,8 @@
                         <i class="fa-solid fa-qrcode"></i> Scan untuk Bergabung
                     </h2>
                     
-                    <div class="p-4 bg-white rounded-2xl shadow-lg my-2 flex items-center justify-center border-4 border-white">
+                    <!-- QR Code Sederhana & Bersih -->
+                    <div class="p-3 bg-white rounded-xl shadow-md my-2 flex items-center justify-center border border-slate-200">
                         <div id="qrcode"></div>
                     </div>
                     
@@ -468,6 +469,7 @@
             }
         }
 
+        // FUNGSI MEMBUAT QR CODE DENGAN DESAIN SEDERHANA & MUDAH DI-SCAN
         function setupQRCode() {
             const qrContainer = document.getElementById('qrcode');
             qrContainer.innerHTML = "";
@@ -478,11 +480,11 @@
             
             new QRCode(qrContainer, {
                 text: joinUrl,
-                width: 140,
-                height: 140,
+                width: 128,
+                height: 128,
                 colorDark : "#000000",
                 colorLight : "#ffffff",
-                correctLevel : QRCode.CorrectLevel.M
+                correctLevel : QRCode.CorrectLevel.L
             });
         }
 
@@ -675,7 +677,7 @@
                 speedBonus: 0,
                 totalScore: 0,
                 solved: {},
-                failedAttempts: {}
+                attempts: {}
             };
 
             db.ref(`verifikasi_sessions/${appState.sessionCode}/scores/${playerState.idKey}`).set(playerPayload)
@@ -757,13 +759,14 @@
             renderQuestionGrid();
         }
 
+        // RENDER GRID NOMOR SOAL (DENGAN DUKUNGAN TERKUNCI X)
         function renderQuestionGrid() {
             const grid = document.getElementById('numbersGrid');
             grid.innerHTML = '';
 
             const pData = (appState.scores && appState.scores[playerState.idKey]) ? appState.scores[playerState.idKey] : null;
             const solvedObj = (pData && pData.solved && pData.solved[playerState.currentMission]) ? pData.solved[playerState.currentMission] : {};
-            const failedObj = (pData && pData.failedAttempts && pData.failedAttempts[playerState.currentMission]) ? pData.failedAttempts[playerState.currentMission] : {};
+            const attemptsObj = (pData && pData.attempts && pData.attempts[playerState.currentMission]) ? pData.attempts[playerState.currentMission] : {};
 
             const range = missionRanges[playerState.currentMission];
 
@@ -772,15 +775,16 @@
                 btn.innerText = i;
 
                 const isSolved = Array.isArray(solvedObj) ? solvedObj.includes(i) : !!solvedObj[i];
-                const fails = failedObj[i] || 0;
-                const isLocked = fails >= 2;
+                const failAttempts = attemptsObj[i] || 0;
 
                 if (isSolved) {
                     btn.className = "py-2 bg-emerald-500/20 text-emerald-400 border border-emerald-500/50 font-bold text-xs rounded-lg cursor-default relative";
                     btn.innerHTML = `${i} <i class="fa-solid fa-check text-[9px] absolute top-1 right-1"></i>`;
-                } else if (isLocked) {
-                    btn.className = "py-2 bg-rose-500/20 text-rose-400 border border-rose-500/50 font-bold text-xs rounded-lg cursor-not-allowed relative";
-                    btn.innerHTML = `${i} <i class="fa-solid fa-xmark text-[10px] absolute top-1 right-1"></i>`;
+                } else if (failAttempts >= 2) {
+                    // JIKA SALAH 2 KALI: TERKUNCI DAN TANDA X
+                    btn.className = "py-2 bg-rose-950/40 text-rose-500 border border-rose-800/50 font-bold text-xs rounded-lg cursor-not-allowed opacity-70 relative";
+                    btn.innerHTML = `${i} <i class="fa-solid fa-xmark text-[10px] absolute top-1 right-1 text-rose-500"></i>`;
+                    btn.disabled = true;
                 } else {
                     if (playerState.currentQuestion === i) {
                         btn.className = "py-2 bg-sky-500 text-slate-950 border border-sky-400 font-extrabold text-xs rounded-lg shadow-md";
@@ -812,6 +816,7 @@
             return str.replace(/\s+/g, '').toLowerCase();
         }
 
+        // LOGIKA PENGECEKAN JAWABAN (MAKSIMAL 2 KALI & MINUS 50 POIN)
         function checkAnswer() {
             const input = document.getElementById('answerInput');
             const feedback = document.getElementById('feedback');
@@ -827,24 +832,16 @@
                 return;
             }
 
+            const correctAnswer = normalizeAlgebra(answerKeys[playerState.currentMission][playerState.currentQuestion]);
+            feedback.classList.remove('hidden');
+
             const pData = appState.scores[playerState.idKey];
             if (!pData) return;
 
-            // Inisialisasi struktur failedAttempts jika belum ada
-            if (!pData.failedAttempts) pData.failedAttempts = {};
-            if (!pData.failedAttempts[playerState.currentMission]) {
-                pData.failedAttempts[playerState.currentMission] = {};
-            }
-            let missionFailed = pData.failedAttempts[playerState.currentMission];
-            let currentFails = missionFailed[playerState.currentQuestion] || 0;
+            if (!pData.attempts) pData.attempts = {};
+            if (!pData.attempts[playerState.currentMission]) pData.attempts[playerState.currentMission] = {};
 
-            if (currentFails >= 2) {
-                alert("Soal ini sudah terkunci karena telah salah menjawab sebanyak 2 kali.");
-                return;
-            }
-
-            const correctAnswer = normalizeAlgebra(answerKeys[playerState.currentMission][playerState.currentQuestion]);
-            feedback.classList.remove('hidden');
+            let currentAttempts = pData.attempts[playerState.currentMission][playerState.currentQuestion] || 0;
 
             if (userInput === correctAnswer) {
                 const elapsedSeconds = Math.max(1, Math.floor((Date.now() - playerState.questionStartTime) / 1000));
@@ -885,27 +882,35 @@
                 playerState.currentQuestion = null;
 
             } else {
-                currentFails += 1;
-                missionFailed[playerState.currentQuestion] = currentFails;
+                // JIKA JAWABAN SALAH
+                currentAttempts += 1;
+                pData.attempts[playerState.currentMission][playerState.currentQuestion] = currentAttempts;
+                
+                // KURANGI SKOR 50 POIN PER KESALAHAN
+                pData.baseScore = (pData.baseScore || 0) - 50;
+                pData.totalScore = pData.baseScore + (pData.speedBonus || 0);
 
-                // Kurangi 50 poin setiap kesalahan
-                pData.totalScore = (pData.totalScore || 0) - 50;
-
-                db.ref(`verifikasi_sessions/${appState.sessionCode}/scores/${playerState.idKey}`).set(pData);
-                updatePlayerHUD();
-                renderQuestionGrid();
-
-                if (currentFails >= 2) {
+                if (currentAttempts >= 2) {
+                    // KESALAHAN KE-2: TERKUNCI
                     feedback.className = "p-3 rounded-xl text-center text-xs font-bold transition-all bg-rose-500/20 text-rose-400 border border-rose-500/50";
-                    feedback.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-base mr-1"></i> SALAH KEDUA KALI!<br><span class="text-[11px] font-normal">Nomor soal telah terkunci (Pengurangan total -50 poin).</span>`;
+                    feedback.innerHTML = `<i class="fa-solid fa-circle-xmark text-base mr-1"></i> KESALAHAN KEDUA! (-50 Poin)<br><span class="text-[11px] font-normal">Nomor soal ini telah terkunci secara otomatis.</span>`;
                     
+                    db.ref(`verifikasi_sessions/${appState.sessionCode}/scores/${playerState.idKey}`).set(pData);
+
+                    updatePlayerHUD();
+                    renderQuestionGrid();
+
                     input.value = '';
                     input.disabled = true;
                     document.getElementById('submitBtn').disabled = true;
                     playerState.currentQuestion = null;
                 } else {
-                    feedback.className = "p-3 rounded-xl text-center text-xs font-bold transition-all bg-rose-500/20 text-rose-400 border border-rose-500/50";
-                    feedback.innerHTML = `<i class="fa-solid fa-circle-xmark text-base mr-1"></i> JAWABAN SALAH (Kesempatan ke-${currentFails}/2).<br><span class="text-[11px] font-normal">Poin dikurangi 50. Silakan coba sekali lagi!</span>`;
+                    // KESALAHAN PERTAMA: KESEMPATAN MASIH KETIGA/TERAKHIR (1 KALI LAGI)
+                    feedback.className = "p-3 rounded-xl text-center text-xs font-bold transition-all bg-amber-500/20 text-amber-400 border border-amber-500/50";
+                    feedback.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-base mr-1"></i> JAWABAN BELUM TEPAT (-50 Poin)!<br><span class="text-[11px] font-normal">Sisa percobaan untuk nomor ini: 1 kali lagi.</span>`;
+                    
+                    db.ref(`verifikasi_sessions/${appState.sessionCode}/scores/${playerState.idKey}`).set(pData);
+                    updatePlayerHUD();
                 }
             }
         }
